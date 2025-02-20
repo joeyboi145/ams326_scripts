@@ -78,6 +78,7 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
     i = 0
     x = (a + b) / 2
     error = math.fabs(x - ROOT)
+    # error = math.fabs(f(x))
     while (error >= P_ERROR):
         x = (a + b) / 2
         if (verbose): 
@@ -90,6 +91,7 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
         else: a = x
         i += 1
         error = math.fabs(x - ROOT)
+        # error = math.fabs(f(x))
 
     # if (verbose): print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
     print(f"Number of iterations: {i}")
@@ -103,6 +105,7 @@ def newton_method(x: float, verbose = False) -> None:
 
     i = 0
     error = math.fabs(x - ROOT)
+    # error = math.fabs(f(x))
     while (error >= P_ERROR):
         if (verbose): 
             print(f"    Iteration {i}: x = {x}")
@@ -110,6 +113,7 @@ def newton_method(x: float, verbose = False) -> None:
         x = x - (f(x) / df(x))
         i += 1
         error = math.fabs(x - ROOT)
+        # error = math.fabs(f(x))
         if (i > ITER_MAX):
             print("ERROR: Reached maximum iterations. Converging too slow or not at all")
             print(f"Result: {x}")
@@ -127,6 +131,7 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
 
     i = 0
     error = math.fabs(x2 - ROOT)
+    # error = math.fabs(f(x))
     while (error >= P_ERROR):
         if (verbose): 
             # print(f"{i} & {x1} & {x2} \\\\")
@@ -138,6 +143,7 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
         x2 = x3
         i += 1 
         error = math.fabs(x2 - ROOT)
+        # error = math.fabs(f(x))
         if (i > ITER_MAX):
             print("ERROR: Reached maximum iterations. Converging too slow or not at all")
             print(f"Result: {x2}")
@@ -156,16 +162,18 @@ def monte_carlo_method(a: float, b: float, verbose = False) -> None:
     i = 1
     x = random.uniform(a, b)
     error = math.fabs(x - ROOT)
+    # error = math.fabs(f(x))
     while (error >= P_ERROR):
         if (verbose): print(f"\tIteration {i}: {x}")
         x = random.uniform(a, b)
         error = math.fabs(x - ROOT)
+        # error = math.fabs(f(x))
         i += 1
-    # print(f"{i} & {x} & {error} \\\\")
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{3*i + 3}")
     print(f"Final Result: {x}")
     print(f"Final Error: {error}")
+    # print(f"{i} & {x} & {str(error)} \\\\")
     return i
 
 
@@ -222,10 +230,11 @@ def calc_runtime(start_time):
     end_time = time.perf_counter()
     runtime = (end_time - start_time) * 10 ** 3
     print(f"Runtime: {runtime} ms")
+    # print(f" & {runtime} ms \\\\")
 
 
 def main():
-    ### BEGIN Option Switchboard ###
+    ### BEGIN Command line Options Switchboard ###
     perform = True  # if True = run all methods 
     evaluate = [False, False, False, False, False, False]   # if true, run specific method
     verbose = False # if true, print additinoal information
@@ -288,6 +297,7 @@ def main():
 
 
     # PROBLEM 1: ROOT APPROXIMATION
+    # Each method prints out the runtime
     if perform or evaluate[0]:
         start_time = time.perf_counter() 
         bisection_method(-1, 1, verbose)
@@ -304,6 +314,12 @@ def main():
         start_time = time.perf_counter() 
         monte_carlo_method(0.50, 0.75, verbose)
         calc_runtime(start_time)
+
+    # if perform or evaluate[3]: 
+    #     for n in range(0, 5):
+    #         start_time = time.perf_counter() 
+    #         monte_carlo_method(0.50, 0.75, verbose)
+    #         calc_runtime(start_time)
 
 
     x_points = [1, 2, 3, 4, 5]
