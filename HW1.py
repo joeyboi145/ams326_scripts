@@ -39,8 +39,8 @@ def test_q():
 
 
 # f(x) = e^(-x^3) - x^4 - sin(x)
-# Number of FLOP is 4 + 19 + 46 = 69
-# 46 for e^x (16th degree term), 19 for sin(x) (13th degree term), 
+# Number of FLOP is 19 + 19 + 4 = 44
+# 19 for e^x (7 terms), 18 for sin(x) (7 terms), 
 # and 4 from multiplication for small x 
 # Assume truncation at the 7th Taylor Series term
 def f(x: float) -> float:
@@ -52,9 +52,9 @@ def f(x: float) -> float:
     return term1 - term2 - term3
 
 # f'(x) = (-3x^2)*e^(-x^3) - 4x^3 - cos(x)
-# Number of FLOP is 7 + 18 + 46 = 71
-# 46 for e^x (16th degree term), 18 for cos(x) (12th degree term), 
-# and 7 from multiplcation for small x
+# Number of FLOP is 9 + 19 + 18 = 46
+# 19 for e^x (7 terms), 18 for cos(x) (7 terms), 
+# and 9 from multiplcation for small x
 # Assume truncation at the 7th Taylor Series
 def df(x: float) -> float:
     double_x = x * x
@@ -93,7 +93,7 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
 
     # if (verbose): print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP needed: ~{142 * i + 4 + 140}")
+    print(f"Number of estimated FLOP needed: ~{94 + 93 * i}")
     print(f"Final Result: {x}")
     print(f"Final Error: {error}\n")
 
@@ -117,7 +117,7 @@ def newton_method(x: float, verbose = False) -> None:
             return
 
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP: ~{144 * i + 2}")
+    print(f"Number of estimated FLOP: ~{94 * i + 2}")
     print(f"Final Result: {x}")
     print(f"Final Error: {error}\n")
 
@@ -146,7 +146,7 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
 
     # if (verbose): print(f"{i} & {x1} & {x2} \\\\")
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP: ~{147 * i + 2}")
+    print(f"Number of estimated FLOP: ~{95 * i + 2}")
     print(f"Final Result: {x2}")
     print(f"Final Error: {error}\n")
 
@@ -161,9 +161,9 @@ def monte_carlo_method(a: float, b: float, verbose = False) -> None:
         x = random.uniform(a, b)
         error = math.fabs(x - ROOT)
         i += 1
-    
+    # print(f"{i} & {x} & {error} \\\\")
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP: ~{i}")
+    print(f"Number of estimated FLOP: ~{3*i + 3}")
     print(f"Final Result: {x}")
     print(f"Final Error: {error}\n")
     return i
@@ -287,11 +287,8 @@ if __name__ == "__main__":
     if perform or evaluate[1]: newton_method(0, verbose)
     if perform or evaluate[2]: secant_method(-1, 1, verbose)
     if perform or evaluate[3]: 
-        number = 1000
-        sum = 0
-        for n in range (0, number):
-            sum += monte_carlo_method(0.50, 0.75, verbose)
-        print(f"Average iteration for {number} simulations: {sum / number}" )
+        for n in range(0,5):
+            monte_carlo_method(0.50, 0.75, verbose)
 
 
     x_points = [1, 2, 3, 4, 5]
@@ -345,8 +342,3 @@ if __name__ == "__main__":
         plt.show()
         
 
-    
-
-
-
-    
