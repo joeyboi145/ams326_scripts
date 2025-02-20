@@ -3,7 +3,8 @@
 # SBUID: 11241692
 # NetID: jjmmartinez
 
-import math, sys, numpy as np
+import math, sys, random
+import numpy as np
 import matplotlib.pyplot as plt
 
 P_ERROR = 0.5 * (math.pow(10, -4))
@@ -80,11 +81,11 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
     while (error >= P_ERROR):
         x = (a + b) / 2
         if (verbose): 
-            print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
-            # print(f"    Iteration {i}: x = {x}")
-            # print(f"      a = {a}")
-            # print(f"      b = {b}")
-            # print(f"      f(x) = {f(x)}")
+            # print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
+            print(f"    Iteration {i}: x = {x}")
+            print(f"      a = {a}")
+            print(f"      b = {b}")
+            print(f"      f(x) = {f(x)}")
         if f(a) * f(x) < 0: b = x
         else: a = x
         i += 1
@@ -102,13 +103,10 @@ def newton_method(x: float, verbose = False) -> None:
 
     i = 0
     error = math.fabs(x - ROOT)
-    # TOTAL FLOP: 2 * (i + 1) + 142 * i  = 144i + 2
     while (error >= P_ERROR):
         if (verbose): 
-            # print(f"    Iteration {i}: x = {x}")
-            print(f"{i} & {x} \\\\")
-
-        # FLOP: 2 + 69 + 71 = 142
+            print(f"    Iteration {i}: x = {x}")
+            # print(f"{i} & {x} \\\\")
         x = x - (f(x) / df(x))
         i += 1
         error = math.fabs(x - ROOT)
@@ -129,13 +127,11 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
 
     i = 0
     error = math.fabs(x2 - ROOT)
-    # TOTAL FLOP: 2 * (i + 1) + ((69 * 2) + 7) * i
-    # = 2i + 1 + 145i = 147i + 2
     while (error >= P_ERROR):
         if (verbose): 
             # print(f"{i} & {x1} & {x2} \\\\")
             print(f"    Iteration {i}: x = {x2}")
-        fx_store = f(x2)    # Calculate f(x2) once to save FLOP
+        fx_store = f(x2)    # Calculate f(x2) once to save FP
         denom = (fx_store - f(x1)) / (x2 - x1)
         x3 = x2 - (fx_store / denom)
         x1 = x2
@@ -148,16 +144,29 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
             print(f"Error: {error}\n")
             return
 
-    if (verbose): print(f"{i} & {x1} & {x2} \\\\")
+    # if (verbose): print(f"{i} & {x1} & {x2} \\\\")
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{147 * i + 2}")
     print(f"Final Result: {x2}")
     print(f"Final Error: {error}\n")
 
 
-def monte_carlo_method() -> None:
-    # https://en.wikipedia.org/wiki/Monte_Carlo_method#:~:text=Draw%20a%20square%2C%20then%20inscribe,placed%20in%20the%20whole%20square.
-    pass
+def monte_carlo_method(a: float, b: float, verbose = False) -> None:
+    print("\nMONTE CARLO METHOD:")
+    i = 1
+    x = random.uniform(a, b)
+    error = math.fabs(x - ROOT)
+    while (error >= P_ERROR):
+        if (verbose): print(f"\tIteration {i}: {x}")
+        x = random.uniform(a, b)
+        error = math.fabs(x - ROOT)
+        i += 1
+    
+    print(f"Number of iterations: {i}")
+    print(f"Number of estimated FLOP: ~{i}")
+    print(f"Final Result: {x}")
+    print(f"Final Error: {error}\n")
+    return i
 
 
 def interpolate_polynomial(x, y):
@@ -211,69 +220,127 @@ def quadratic_fit(x, y, verbose = False):
 
 if __name__ == "__main__":
 
+    ### BEGIN Option Switchboard ###
+    perform = True  # if True = run all methods 
+    evaluate = [False, False, False, False, False, False]   # if true, run specific method
+    verbose = False # if true, print additinoal information
+    graphs = False # if true, print graph
 
-    verbose = False
-    graphs = False
+    help_menu = "Usage: \
+                  \n  -v  --verbose\tProvides additional information and the value of each iteration for each method \
+                  \n  -h  --help\tUsage menu \
+                  \n  -g  --graph\tDisplay graphs \
+                  \n  -t  --test\tPerform rudimentary tests \
+                  \n  -p  --perform\tPerform specific test"
+    perform_menu = "Perform Test Options: \
+                    \n\t-b  --bisection\tPerforms bisection method only \
+                    \n\t-n  --newton\tPerforms Newtons method only\
+                    \n\t-s  --secant\tPerforms secant method only\
+                    \n\t-m  --monte\tPerforms Monte Carlo Method only\
+                    \n\t-i  --interpolate\tPerforms polynomial interpolation only\
+                    \n\t-f  --fit\tPerforms Quadratic fit only"
 
     if len(sys.argv) >= 2:
         flag = sys.argv[1]
-        if flag == '-v' or flag == '--verbose':
-            verbose = True
-        elif flag == '-h' or flag == '--help':
-            print("Usage: \
-                  \n  -v  --verbose\tProvides additional information and the value of each iteration for each method \
-                  \n  -h  --help\tUsage menu \
-                  \n  -g  --graph\tdisplay graphs \
-                  \n  -t  --test\tPerform rudimentary tests ")
-            sys.exit(0)
-        elif flag == '-g' or flag == "--graph":  graphs = True
-        elif flag == '-t' or flag == '--test': 
+
+        # Content Plags: Control addition ouput
+        if flag == '-v' or flag == '--verbose': verbose = True
+        if flag == '-g' or flag == "--graph":  graphs = True
+        
+        # Action Flags: Test, Help, or run methods flags
+        if flag == '-t' or flag == '--test': 
             test_f()
             test_p()
             test_q()
             sys.exit(0)
+        elif flag == '-h' or flag == "--help": 
+            print(help_menu)
+            sys.exit(0)
+
+        elif len(sys.argv) >= 3 and (verbose or graphs or flag == '-p' or flag == '--perform'):
+            # Performance Flags: Control specified test
+            if len(sys.argv) == 2:
+                print(perform_menu)
+                sys.exit(0)
+            else:
+                method = sys.argv[2]
+                if method=='-b' or method == '--bisection': evaluate[0] = True
+                elif method =='-n' or method == '--newton': evaluate[1] = True
+                elif method == '-s' or method == '--secant': evaluate[2] = True
+                elif method == '-m' or method == '--monte':  evaluate[3] = True
+                elif method == '-i' or method == '--interpolate': evaluate[4] = True
+                elif method == '-f' or method == '--fit': evaluate[5] = True
+                else:
+                    print("ERROR: Invalid method")
+                    print(perform_menu)
+                    sys.exit(1)
+                if True in evaluate: perform = False
+        elif not (verbose or graphs):
+            print("ERROR: Invalid flag")
+            print(help_menu)
+            sys.exit(1)
+    ### END Option Switchboard ###
 
 
     # PROBLEM 1: ROOT APPROXIMATION
-    bisection_method(-1, 1, verbose)
-    newton_method(0, verbose)
-    secant_method(-1, 1, verbose)
-    monte_carlo_method()
+    if perform or evaluate[0]: bisection_method(-1, 1, verbose)
+    if perform or evaluate[1]: newton_method(0, verbose)
+    if perform or evaluate[2]: secant_method(-1, 1, verbose)
+    if perform or evaluate[3]: 
+        number = 1000
+        sum = 0
+        for n in range (0, number):
+            sum += monte_carlo_method(0.50, 0.75, verbose)
+        print(f"Average iteration for {number} simulations: {sum / number}" )
 
 
     x_points = [1, 2, 3, 4, 5]
     y_points = [412, 407, 397, 398, 417]
     x = np.array(x_points)
     y = np.array(y_points)
+    coeff = None
+    x_hat = None
+
 
     # PROBLEM 2.1: POLYNOMIAL INTERPOLATE
-    print("\nPOLYNOMIAL INTERPOLATION P(t) OF TELSA STONKS:")
-    coeff = interpolate_polynomial(x, y)
-    # TEST RESULTS
-    test_x = 6
-    result = np.polyval(coeff, test_x)
-    print(f"\nPolynomial Interpolation with t = {test_x}")
-    print(f"P({test_x}) = {result}\n")
+    if perform or evaluate[4]:
+        print("\nPOLYNOMIAL INTERPOLATION P(t) OF TELSA STONKS:")
+        coeff = interpolate_polynomial(x, y)
+        # TEST RESULTS
+        test_x = 6
+        result = np.polyval(coeff, test_x)
+        print(f"\nPolynomial Interpolation with t = {test_x}")
+        print(f"P({test_x}) = {result}\n")
 
 
-    # PROBLEM 2.2: QUADRATIC FIT
-    print("\nQUADRATIC FIT Q(t) OF TELSA STONKS:")
-    x_hat = quadratic_fit(x, y, verbose)
-    # TEST RESULTS
-    test_x = 6
-    result = np.polyval(x_hat, test_x)
-    print(f"\nQuadratic Fit t = {test_x}")
-    print(f"Q({test_x}) = {result}\n")
+    if perform or evaluate[5]:
+        # PROBLEM 2.2: QUADRATIC FIT
+        print("\nQUADRATIC FIT Q(t) OF TELSA STONKS:")
+        x_hat = quadratic_fit(x, y, verbose)
+        # TEST RESULTS
+        test_x = 6
+        result = np.polyval(x_hat, test_x)
+        print(f"\nQuadratic Fit t = {test_x}")
+        print(f"Q({test_x}) = {result}\n")
     
 
     if graphs:
-        xp = np.linspace(0,6,400)
-        yp1 = np.polyval(coeff, xp)
-        yp2 = np.polyval(x_hat, xp)
+        xp = np.linspace(0,7,400)
+        if coeff is not None: 
+            yp1 = np.polyval(coeff, xp)
+            p1 = np.polyval(coeff, [6])
+            plt.plot(xp, yp1, label='Interpolated Line')
+            plt.plot([6], [p1], 'o', label='P(t) Extrapolated Data', markersize=8)
+        if x_hat is not None: 
+            yp2 = np.polyval(x_hat, xp)
+            p2 = np.polyval(x_hat, [6])
+            plt.plot(xp, yp2, label='Quadratic Fitted Line')
+            plt.plot([6], [p2], 'o', label='Q(t) Extrapolated Data', markersize=8)
 
-        plt.plot(x, y, 'o', label='Original data', markersize=10)
-        plt.plot(xp, yp1, label='Interpolated Line')
-        plt.plot(xp, yp2, label='Quadratic Fitted Line')
+
+        plt.plot(x, y, 'o', label='Original Data', markersize=8)
+        plt.xlabel("Time")
+        plt.ylabel("Telsa Stocks Closings")
         plt.legend()
         plt.show()
         
