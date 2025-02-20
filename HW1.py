@@ -80,15 +80,17 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
     while (error >= P_ERROR):
         x = (a + b) / 2
         if (verbose): 
-            print(f"    Iteration {i}: x = {x}")
-            print(f"      a = {a}")
-            print(f"      b = {b}")
-            print(f"      f(x) = {f(x)}")
+            print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
+            # print(f"    Iteration {i}: x = {x}")
+            # print(f"      a = {a}")
+            # print(f"      b = {b}")
+            # print(f"      f(x) = {f(x)}")
         if f(a) * f(x) < 0: b = x
         else: a = x
         i += 1
         error = math.fabs(x - ROOT)
 
+    # if (verbose): print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP needed: ~{142 * i + 4 + 140}")
     print(f"Final Result: {x}")
@@ -102,7 +104,10 @@ def newton_method(x: float, verbose = False) -> None:
     error = math.fabs(x - ROOT)
     # TOTAL FLOP: 2 * (i + 1) + 142 * i  = 144i + 2
     while (error >= P_ERROR):
-        if (verbose): print(f"    Iteration {i}: x = {x}")
+        if (verbose): 
+            # print(f"    Iteration {i}: x = {x}")
+            print(f"{i} & {x} \\\\")
+
         # FLOP: 2 + 69 + 71 = 142
         x = x - (f(x) / df(x))
         i += 1
@@ -127,7 +132,9 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
     # TOTAL FLOP: 2 * (i + 1) + ((69 * 2) + 7) * i
     # = 2i + 1 + 145i = 147i + 2
     while (error >= P_ERROR):
-        if (verbose): print(f"    Iteration {i}: x = {x2}")
+        if (verbose): 
+            # print(f"{i} & {x1} & {x2} \\\\")
+            print(f"    Iteration {i}: x = {x2}")
         fx_store = f(x2)    # Calculate f(x2) once to save FLOP
         denom = (fx_store - f(x1)) / (x2 - x1)
         x3 = x2 - (fx_store / denom)
@@ -141,6 +148,7 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
             print(f"Error: {error}\n")
             return
 
+    if (verbose): print(f"{i} & {x1} & {x2} \\\\")
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{147 * i + 2}")
     print(f"Final Result: {x2}")
