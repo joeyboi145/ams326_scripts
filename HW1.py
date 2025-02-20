@@ -3,7 +3,7 @@
 # SBUID: 11241692
 # NetID: jjmmartinez
 
-import math, sys, random
+import math, sys, random, time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -95,7 +95,7 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP needed: ~{94 + 93 * i}")
     print(f"Final Result: {x}")
-    print(f"Final Error: {error}\n")
+    print(f"Final Error: {error}")
 
 
 def newton_method(x: float, verbose = False) -> None:
@@ -119,7 +119,7 @@ def newton_method(x: float, verbose = False) -> None:
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{94 * i + 2}")
     print(f"Final Result: {x}")
-    print(f"Final Error: {error}\n")
+    print(f"Final Error: {error}")
 
 
 def secant_method(x1: float, x2: float, verbose = False) -> None:
@@ -141,14 +141,14 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
         if (i > ITER_MAX):
             print("ERROR: Reached maximum iterations. Converging too slow or not at all")
             print(f"Result: {x2}")
-            print(f"Error: {error}\n")
+            print(f"Error: {error}")
             return
 
     # if (verbose): print(f"{i} & {x1} & {x2} \\\\")
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{95 * i + 2}")
     print(f"Final Result: {x2}")
-    print(f"Final Error: {error}\n")
+    print(f"Final Error: {error}")
 
 
 def monte_carlo_method(a: float, b: float, verbose = False) -> None:
@@ -165,7 +165,7 @@ def monte_carlo_method(a: float, b: float, verbose = False) -> None:
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{3*i + 3}")
     print(f"Final Result: {x}")
-    print(f"Final Error: {error}\n")
+    print(f"Final Error: {error}")
     return i
 
 
@@ -218,8 +218,13 @@ def quadratic_fit(x, y, verbose = False):
     return x_hat
 
 
-if __name__ == "__main__":
+def calc_runtime(start_time):
+    end_time = time.perf_counter()
+    runtime = (end_time - start_time) * 10 ** 3
+    print(f"Runtime: {runtime} ms")
 
+
+def main():
     ### BEGIN Option Switchboard ###
     perform = True  # if True = run all methods 
     evaluate = [False, False, False, False, False, False]   # if true, run specific method
@@ -283,12 +288,22 @@ if __name__ == "__main__":
 
 
     # PROBLEM 1: ROOT APPROXIMATION
-    if perform or evaluate[0]: bisection_method(-1, 1, verbose)
-    if perform or evaluate[1]: newton_method(0, verbose)
-    if perform or evaluate[2]: secant_method(-1, 1, verbose)
+    if perform or evaluate[0]:
+        start_time = time.perf_counter() 
+        bisection_method(-1, 1, verbose)
+        calc_runtime(start_time)
+    if perform or evaluate[1]: 
+        start_time = time.perf_counter() 
+        newton_method(0, verbose)
+        calc_runtime(start_time)
+    if perform or evaluate[2]: 
+        start_time = time.perf_counter() 
+        secant_method(-1, 1, verbose)
+        calc_runtime(start_time)
     if perform or evaluate[3]: 
-        for n in range(0,5):
-            monte_carlo_method(0.50, 0.75, verbose)
+        start_time = time.perf_counter() 
+        monte_carlo_method(0.50, 0.75, verbose)
+        calc_runtime(start_time)
 
 
     x_points = [1, 2, 3, 4, 5]
@@ -302,7 +317,9 @@ if __name__ == "__main__":
     # PROBLEM 2.1: POLYNOMIAL INTERPOLATE
     if perform or evaluate[4]:
         print("\nPOLYNOMIAL INTERPOLATION P(t) OF TELSA STONKS:")
+        start_time = time.perf_counter()
         coeff = interpolate_polynomial(x, y)
+        calc_runtime(start_time)
         # TEST RESULTS
         test_x = 6
         result = np.polyval(coeff, test_x)
@@ -313,7 +330,9 @@ if __name__ == "__main__":
     if perform or evaluate[5]:
         # PROBLEM 2.2: QUADRATIC FIT
         print("\nQUADRATIC FIT Q(t) OF TELSA STONKS:")
+        start_time = time.perf_counter()
         x_hat = quadratic_fit(x, y, verbose)
+        calc_runtime(start_time)
         # TEST RESULTS
         test_x = 6
         result = np.polyval(x_hat, test_x)
@@ -337,8 +356,11 @@ if __name__ == "__main__":
 
         plt.plot(x, y, 'o', label='Original Data', markersize=8)
         plt.xlabel("Time")
-        plt.ylabel("Telsa Stocks Closings")
+        plt.ylabel("Tesla Stocks Closings")
         plt.legend()
         plt.show()
         
 
+
+if __name__ == "__main__":
+    main()
