@@ -44,6 +44,15 @@ def test_q():
 # and 4 from multiplication for small x 
 # Assume truncation at the 7th Taylor Series term
 def f(x: float) -> float:
+    """
+    This function represents the code version of f(x) = e^(-x^3) - x^4 - sin(x)
+
+    Args:
+        x (float): An x value to evaluate
+
+    Returns:
+        float: f(x)
+    """
     double_x = x * x
     exponent = -1 * double_x * x 
     term1 = math.exp(exponent)
@@ -57,6 +66,16 @@ def f(x: float) -> float:
 # and 9 from multiplcation for small x
 # Assume truncation at the 7th Taylor Series
 def df(x: float) -> float:
+    """
+    This function represents the code version of f'(x) = (-3x^2)*e^(-x^3) - 4x^3 - cos(x)
+    the derivative to f(x) = e^(-x^3) - x^4 - sin(x)
+
+    Args:
+        x (float): An x value to evaluate
+
+    Returns:
+        float: f'(x)
+    """
     double_x = x * x
     exponent = -1 * double_x * x 
     term1 = (-3 * double_x) * math.exp(exponent)
@@ -66,6 +85,19 @@ def df(x: float) -> float:
 
 
 def bisection_method(a: float, b: float, verbose = False) -> None:
+    """
+    The bisection method for root approximation using a range of [a,b] containing
+    a root which returns 4-decimal place accurate result and outputs the number 
+    of iteration and floating point operations.
+
+    Args:
+        a (float): The start of the range
+        b (float): The end of the range
+        verbose (boolean): if True, prints values for each iteration
+
+    Returns:
+        float: A value that approximates the root with 4 decimal place accuracy
+    """
     print("\nBISECTION METHOD:")
 
     initial_condition = f(a) * f(b)
@@ -101,6 +133,18 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
 
 
 def newton_method(x: float, verbose = False) -> None:
+    """
+    Newton's method for root approximation using an initial guess root 
+    which returns a 4-decimal place accurate result and outputs the 
+    number of iteration and floating point operations.
+
+    Args:
+        x (float): initial guess for a root
+        verbose (boolean): if True, prints values for each iteration
+
+    Returns:
+        float: A value that approximates the root with 4 decimal place accuracy
+    """
     print("\nNEWTON'S METHOD:")
 
     i = 0
@@ -127,6 +171,19 @@ def newton_method(x: float, verbose = False) -> None:
 
 
 def secant_method(x1: float, x2: float, verbose = False) -> None:
+    """
+    The Secant method for root approximation using two initial guesses 
+    which returns a 4-decimal place accurate result and outputs the \
+    number of iteration and floating point operations.
+
+    Args:
+        x1 (float): first initial guess for a root
+        x2 (float): second initial guess for a root
+        verbose (boolean): if True, prints values for each iteration
+
+    Returns:
+        float: A value that approximates the root with 4 decimal place accuracy
+    """
     print("\nSECANT METHOD:")
 
     i = 0
@@ -158,6 +215,19 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
 
 
 def monte_carlo_method(a: float, b: float, verbose = False) -> None:
+    """
+    A Monte Carlo method for root approximation using a range [a,b] 
+    to guess roots within which returns a 4-decimal place accurate 
+    result and outputs the number of iteration and floating point operations.
+
+    Args:
+        a (float): The start of the range
+        b (float): The end of the range
+        verbose (boolean): if True, prints values for each iteration
+
+    Returns:
+        float: A value that approximates the root with 4 decimal place accuracy
+    """
     print("\nMONTE CARLO METHOD:")
     i = 1
     x = random.uniform(a, b)
@@ -177,7 +247,19 @@ def monte_carlo_method(a: float, b: float, verbose = False) -> None:
     return i
 
 
-def interpolate_polynomial(x, y):
+def interpolate_polynomial(x: list, y: list) -> np.ndarray:
+    """
+    Returns a list of numbers that represent the coefficients of an
+    interpolation polynomial that maps the list of inputed x and 
+    y value.
+
+    Args:
+        x (list): A list of x values 
+        y (list): A list of y values 
+
+    Returns:
+        numpy.ndarray: A list of coefficients for the interpolating polynomial
+    """
     print("INTERPOLATE POLYNOMIAL:")
     equations = []
     num_points = len(x)
@@ -197,7 +279,20 @@ def interpolate_polynomial(x, y):
     return coeff
 
 
-def quadratic_fit(x, y, verbose = False):
+def quadratic_fit(x: list, y: list, verbose = False) -> np.ndarray:
+    """
+    Returns a list of numbers that represent the coefficients of an
+    fitted quadratic equation that fits the list of inputed x and 
+    y value.
+
+    Args:
+        x (list): A list of x values 
+        y (list): A list of y values 
+        verbose (boolean): if True, prints values of important matrix calculations
+
+    Returns:
+        numpy.ndarray: A list of coefficients for the fitted quadratic equation
+    """
     print("QUADRATIC FIT:")
     equations = []
     for n in x:
@@ -226,7 +321,14 @@ def quadratic_fit(x, y, verbose = False):
     return x_hat
 
 
-def calc_runtime(start_time):
+def calc_runtime(start_time: float) -> None:
+    """
+    Prints the runtime in milliseconds of a segment of code given the start time.
+
+    Args:
+        start_time (float): A time value
+
+    """
     end_time = time.perf_counter()
     runtime = (end_time - start_time) * 10 ** 3
     print(f"Runtime: {runtime} ms")
