@@ -7,9 +7,11 @@ import math, sys, random, time
 import numpy as np
 import matplotlib.pyplot as plt
 
-P_ERROR = 0.5 * (math.pow(10, -4))
+TOL = math.pow(10, -4)
+P_ERROR = 0.5 * TOL
 ROOT = 0.641583
 ITER_MAX = 10000
+
 
 def test_f():
     print("\nTESTING Problem 1:")
@@ -100,35 +102,39 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
     """
     print("\nBISECTION METHOD:")
 
+    # FP: 1 + 44 + 44 + 1 + 1 = 91
+    if a >= b:
+        print(f"ERROR: a must be smaller than b")
+        return None
+    
     initial_condition = f(a) * f(b)
-    print(f"    Initial Condition f({a})*f({b}) = {initial_condition} < 0: "
-        + ("TRUE" if initial_condition < 0 else "FALSE"))
-    if not initial_condition < 0:
-        print(f"ERROR: f(a)*f(b) must be below  0")
+    if initial_condition >= 0:
+        print(f"ERROR: f(a)*f(b) must be below 0")
         return
+    else:
+        print(f"    Initial Condition f({a})*f({b}) = {initial_condition} < 0: TRUE")
+        
 
+    # FP: 1 + 1 + (i + 1)*2 + (44 + 44 + 1 + 1 + 1)*i = 4 + 93i
     i = 0
     x = (a + b) / 2
-    error = math.fabs(x - ROOT)
-    # error = math.fabs(f(x))
+    range_size = math.fabs(b - a)
+    error = range_size / 2
     while (error >= P_ERROR):
-        x = (a + b) / 2
         if (verbose): 
+            print(f"    Iteration {i}: x = {x}", f"\n\ta = {a}", f"\n\tb = {b}", f"\n\tf(x) = {f(x)}")
             # print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
-            print(f"    Iteration {i}: x = {x}")
-            print(f"      a = {a}")
-            print(f"      b = {b}")
-            print(f"      f(x) = {f(x)}")
+
+        x = (a + b) / 2
         if f(a) * f(x) < 0: b = x
         else: a = x
         i += 1
-        error = math.fabs(x - ROOT)
-        # error = math.fabs(f(x))
+        error = error / 2
 
     # if (verbose): print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP needed: ~{94 + 93 * i}")
-    print(f"Final Result: {x}")
+    print(f"Number of estimated FLOP needed: ~{95 + 93 * i}")
+    print(f"Final Result: {x}", math.fabs(x - ROOT) < P_ERROR)
     print(f"Final Error: {error}")
 
 
@@ -148,26 +154,27 @@ def newton_method(x: float, verbose = False) -> None:
     print("\nNEWTON'S METHOD:")
 
     i = 0
-    error = math.fabs(x - ROOT)
-    # error = math.fabs(f(x))
-    while (error >= P_ERROR):
+    # FP: (44 + 46 + 2 + 1 + 1)*i = 94i
+    while True:
         if (verbose): 
             print(f"    Iteration {i}: x = {x}")
             # print(f"{i} & {x} \\\\")
-        x = x - (f(x) / df(x))
-        i += 1
-        error = math.fabs(x - ROOT)
-        # error = math.fabs(f(x))
-        if (i > ITER_MAX):
-            print("ERROR: Reached maximum iterations. Converging too slow or not at all")
-            print(f"Result: {x}")
-            print(f"Error: {error}\n")
-            return
 
+        prev_x = x
+        x = x - (f(x) / df(x))
+        error = math.fabs(x - prev_x)
+        i += 1
+        if error < TOL: break
+        elif (i > ITER_MAX):
+            print("ERROR: Reached maximum iterations. Converging too slow or not at all")
+            print(f"Result: {x} \n Error: {error}\n")
+            return
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP: ~{94 * i + 2}")
-    print(f"Final Result: {x}")
+    print(f"Number of estimated FLOP: ~{94 * i}")
+    print(f"Final Result: {x}", math.fabs(x - ROOT) < P_ERROR)
     print(f"Final Error: {error}")
+    return x
+
 
 
 def secant_method(x1: float, x2: float, verbose = False) -> None:
@@ -185,33 +192,34 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
         float: A value that approximates the root with 4 decimal place accuracy
     """
     print("\nSECANT METHOD:")
+    if x1 == x2: 
+        print("ERROR: x1 cannot equal x2")
+        return
 
     i = 0
-    error = math.fabs(x2 - ROOT)
-    # error = math.fabs(f(x))
-    while (error >= P_ERROR):
+    # FP: (44 + 44 + 3 + 2 + 1 + 1)*i
+    while True:
         if (verbose): 
-            # print(f"{i} & {x1} & {x2} \\\\")
             print(f"    Iteration {i}: x = {x2}")
-        fx_store = f(x2)    # Calculate f(x2) once to save FP
-        denom = (fx_store - f(x1)) / (x2 - x1)
-        x3 = x2 - (fx_store / denom)
+            # print(f"{i} & {x1} & {x2} \\\\")
+
+        fx2 = f(x2)     # Calculate f(x2) once to save FP
+        denom = (fx2 - f(x1)) / (x2 - x1)
+        x3 = x2 - (fx2 / denom)
         x1 = x2
         x2 = x3
-        i += 1 
-        error = math.fabs(x2 - ROOT)
-        # error = math.fabs(f(x))
-        if (i > ITER_MAX):
+        i += 1
+        error = math.fabs(x2 - x1)
+        if error < TOL: break
+        elif (i >= ITER_MAX):
             print("ERROR: Reached maximum iterations. Converging too slow or not at all")
-            print(f"Result: {x2}")
-            print(f"Error: {error}")
+            print(f"Result: {x2} \n Error: {error}\n")
             return
-
-    # if (verbose): print(f"{i} & {x1} & {x2} \\\\")
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP: ~{95 * i + 2}")
-    print(f"Final Result: {x2}")
+    print(f"Number of estimated FLOP: ~{95 * i + 1}")
+    print(f"Final Result: {x2}", math.fabs(x2 - ROOT) < P_ERROR)
     print(f"Final Error: {error}")
+    return x2
 
 
 def monte_carlo_method(a: float, b: float, verbose = False) -> None:
@@ -229,18 +237,20 @@ def monte_carlo_method(a: float, b: float, verbose = False) -> None:
         float: A value that approximates the root with 4 decimal place accuracy
     """
     print("\nMONTE CARLO METHOD:")
+    if a >= b:
+        print("ERROR: a cannot be greater than or equal to b")
+        return
+
     i = 1
     x = random.uniform(a, b)
     error = math.fabs(x - ROOT)
-    # error = math.fabs(f(x))
     while (error >= P_ERROR):
         if (verbose): print(f"\tIteration {i}: {x}")
         x = random.uniform(a, b)
         error = math.fabs(x - ROOT)
-        # error = math.fabs(f(x))
         i += 1
     print(f"Number of iterations: {i}")
-    print(f"Number of estimated FLOP: ~{3*i + 3}")
+    print(f"Number of estimated FLOP: ~{3*i + 4}")
     print(f"Final Result: {x}")
     print(f"Final Error: {error}")
     # print(f"{i} & {x} & {str(error)} \\\\")
