@@ -122,8 +122,8 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
     error = range_size / 2
     while (error >= P_ERROR):
         if (verbose): 
-            print(f"    Iteration {i}: x = {x}", f"\n\ta = {a}", f"\n\tb = {b}", f"\n\tf(x) = {f(x)}")
-            # print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
+            # print(f"    Iteration {i}: x = {x}", f"\n\ta = {a}", f"\n\tb = {b}", f"\n\tf(x) = {f(x)}")
+            print(f"{i} & {str(a)[:8]} & {str(b)[:8]} & {x} & {str(f(a))[:7]} & {str(f(x))[:7]} \\\\")
 
         x = (a + b) / 2
         if f(a) * f(x) < 0: b = x
@@ -131,10 +131,10 @@ def bisection_method(a: float, b: float, verbose = False) -> None:
         i += 1
         error = error / 2
 
-    # if (verbose): print(f"{i} & {a} & {b} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
+    if (verbose): print(f"{i} & {str(a)[:8]} & {str(b)[:8]} & {x} & {str(f(a))[:8]} & {str(f(x))[:8]} \\\\")
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP needed: ~{95 + 93 * i}")
-    print(f"Final Result: {x}", math.fabs(x - ROOT) < P_ERROR)
+    print(f"Final Result: {x}", math.fabs(x - ROOT))
     print(f"Final Error: {error}")
 
 
@@ -154,11 +154,8 @@ def newton_method(x: float, verbose = False) -> None:
     print("\nNEWTON'S METHOD:")
 
     i = 0
-    # FP: (44 + 46 + 2 + 1 + 1)*i = 94i
     while True:
-        if (verbose): 
-            print(f"    Iteration {i}: x = {x}")
-            # print(f"{i} & {x} \\\\")
+        if (verbose): print(f"    Iteration {i}: x = {x}")
 
         prev_x = x
         x = x - (f(x) / df(x))
@@ -171,8 +168,8 @@ def newton_method(x: float, verbose = False) -> None:
             return
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{94 * i}")
-    print(f"Final Result: {x}", math.fabs(x - ROOT) < P_ERROR)
-    print(f"Final Error: {error}")
+    print(f"Final Result: {x}")
+    print(f"Final Error: {error}", math.fabs(x - ROOT))
     return x
 
 
@@ -197,11 +194,8 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
         return
 
     i = 0
-    # FP: (44 + 44 + 3 + 2 + 1 + 1)*i
     while True:
-        if (verbose): 
-            print(f"    Iteration {i}: x = {x2}")
-            # print(f"{i} & {x1} & {x2} \\\\")
+        if (verbose): print(f"    Iteration {i}: x = {x2}")
 
         fx2 = f(x2)     # Calculate f(x2) once to save FP
         denom = (fx2 - f(x1)) / (x2 - x1)
@@ -217,8 +211,8 @@ def secant_method(x1: float, x2: float, verbose = False) -> None:
             return
     print(f"Number of iterations: {i}")
     print(f"Number of estimated FLOP: ~{95 * i + 1}")
-    print(f"Final Result: {x2}", math.fabs(x2 - ROOT) < P_ERROR)
-    print(f"Final Error: {error}")
+    print(f"Final Result: {x2}")
+    print(f"Final Error: {error}", math.fabs(x2 - ROOT))
     return x2
 
 
@@ -253,7 +247,6 @@ def monte_carlo_method(a: float, b: float, verbose = False) -> None:
     print(f"Number of estimated FLOP: ~{3*i + 4}")
     print(f"Final Result: {x}")
     print(f"Final Error: {error}")
-    # print(f"{i} & {x} & {str(error)} \\\\")
     return i
 
 
@@ -342,7 +335,6 @@ def calc_runtime(start_time: float) -> None:
     end_time = time.perf_counter()
     runtime = (end_time - start_time) * 10 ** 3
     print(f"Runtime: {runtime} ms")
-    # print(f" & {runtime} ms \\\\")
 
 
 def main():
