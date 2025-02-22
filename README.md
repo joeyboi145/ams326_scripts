@@ -1,8 +1,11 @@
 
 # Repository for AMS 326, Spring 2025 Scripts
 Student: Joe Martinez
+
 email: joe.martinez@stonybrook.edu
+
 netID: jjmmartinez
+
 SBU ID: 112416928
 
 ## Homework 1: Root Approximation and Extrapolation

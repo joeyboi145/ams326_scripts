@@ -3,6 +3,9 @@
 # SBUID: 11241692
 # NetID: jjmmartinez
 
+# Source Code found at:
+# https://github.com/joeyboi145/ams326_scripts/blob/main/hw1.py
+
 import math, sys, random, time
 import numpy as np
 import matplotlib.pyplot as plt
