@@ -107,3 +107,28 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    # X1 =chebyshev_nodes(5,-1,1)
+    # Y1 = np.exp(X1)
+    # coeff = interpolate_polynomial(X1,Y1)
+
+    # X_SPACE = np.linspace(-1,1, 400)
+    # Y_SPACE = np.polyval(coeff, X_SPACE)
+
+    # # plt.plot(X_SPACE, np.exp(X_SPACE), label='e^x')
+    # # plt.plot(X_SPACE, Y_SPACE, label='Interpolated')
+    # # plt.legend()
+    # # plt.show() 
+
+    # x_example = 0.75
+    # prod = 1
+    # for x in X1:
+    #     prod = prod*(x_example - x)
+    # print(f"LHS product value: {prod}")
+
+    # fraction = 1 / math.pow(2, 5-1)
+    # value = np.polyval(coeff, x_example)
+    # prod2 = fraction * value
+    # print(f"RHS product value: {prod2}")
+    
+
