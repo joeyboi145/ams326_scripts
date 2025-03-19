@@ -4,7 +4,7 @@
 # NetID: jjmmartinez
 
 # Source Code found at:
-# https://github.com/joeyboi145/ams326_scripts/blob/main/hw1.py
+# https://github.com/joeyboi145/ams326_scripts/blob/main/hw1_source.py
 
 import math, sys, random, time
 import numpy as np

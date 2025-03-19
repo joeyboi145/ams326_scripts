@@ -4,7 +4,7 @@
 # NetID: jjmmartinez
 
 # Source Code found at:
-# https://github.com/joeyboi145/ams326_scripts/blob/main/hw1.py
+# https://github.com/joeyboi145/ams326_scripts/blob/main/hw2_source.py
 
 import math, sys, warnings
 import sympy as sp
@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 TOL = math.pow(10, -4)
-P_ERROR = (1/2) * (1/6) * 0.5 * (TOL + 2.51 * math.pow(10, -8))
+P_ERROR = (1/2) * (1/6) * 0.5 * (TOL - 2.5 * math.pow(10, -8))
 BOUND_CORRECTION = math.pow(10, -7)
 ITER_MAX = 10000
 BOUND_ERROR = []
@@ -63,31 +63,6 @@ def secant_method(f, x1: float, x2: float) -> float:
     return x2
 
 
-def create_nodes(a: float, b: float, n: int) -> np.ndarray:
-    """
-    Creates a list of n nodes from a given range [a,b]
-
-    Args:
-        a (float): start of the range, first node
-        b (float): end of the range, last node
-        n (int): number of nodes
-
-    Returns:
-        list: A list of nodes
-    """
-    if (n <= 1): raise ValueError("n must be two nodes or greater")
-    if (b <= a): raise ValueError("b must be greater than a")
-
-    interval = math.fabs(b - a) / (n-1)
-    nodes = np.array([a])
-    current_val = a
-    for i in range(0, n - 2):
-        current_val = current_val + interval
-        nodes = np.append(nodes, current_val)
-    nodes = np.append(nodes, b)
-    return nodes
-
-
 def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero = False) -> float:
     """
      The Midpoint Method of integration for a given function f
@@ -113,7 +88,7 @@ def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero 
         piecewise = piecewise.copy()
         piecewise.reverse()
     interval = math.fabs(b - a) / (n-1)
-    nodes = create_nodes(a, b, n)
+    nodes = np.linspace(a, b, n)
     midpoints = np.array([])
     global VERBOSE
     for i in range(0, len(nodes) - 1):
@@ -166,7 +141,7 @@ def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero
         piecewise = piecewise.copy()
         piecewise.reverse()
     interval = math.fabs(b - a) / (n-1)
-    nodes = create_nodes(a, b, n)
+    nodes = np.linspace(a, b, n)
     global VERBOSE
 
     # print(f"nodes ({len(nodes)}): {nodes}")
@@ -183,7 +158,7 @@ def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero
             f = piecewise.pop()
             value = f(node)
         
-        if (i == 0 or i == len(nodes)): sum += f(node)
+        if (i == 0 or i == len(nodes)-1): sum += f(node)
         else: sum += 2*f(node)
         if (VERBOSE): print(f"    OUTPUT: {value}, complex: {np.imag(value)}")
 
@@ -195,9 +170,9 @@ def find_area(method, f, a: float, b: float, n: int,
               piecewise: list = None, zero=False) -> float:
     """
     Calculates the area under the curve 'f' in a given range [a,b] using the 
-    Midpoint Method. It first started with the given nodes n, but increases
-    them by a factor of two for each iteration until an area with a given accuracy
-    tolerance
+    specified method for approximating integration. It first started with the given nodes n, 
+    but increases them by a factor of two for each iteration until an area with a given tolerance
+    for accuracy
 
     Args:
         f (float -> float): function to integrate over
@@ -236,22 +211,16 @@ def find_area(method, f, a: float, b: float, n: int,
 
 
 def test_suite():
-    '''
-    a = 0
-    b = 1
-    nodes = create_nodes(a, b, 5);
-    print(nodes)
-    '''
-
     # '''
     a = 0
     b = 2
 
     # Example Function e^(x+2)
     def f(x):
-        return math.exp(x+2)
+        return math.exp(x)
     
-    real_value = math.exp(4) - math.exp(2)
+    TOL = math.pow(10, -4)
+    real_value = math.exp(2) - 1
     n = 5
     a1 = trapezoid_method(f, a, b, n)
     a2 = None
@@ -263,15 +232,15 @@ def test_suite():
         a2 = trapezoid_method(f, a, b, 2*n)
         error = math.fabs((a1 - a2) / 3)
         i += 1
-        if (error < P_ERROR): break
+        if (error < TOL): break
         a1 = a2
         print(f"Iternation {i}:\n  First Area: {a1}\n  Second Area: {a2}\n  Nodes: {int(n/2)} vs {n}\n  Error: {error}")
 
     a1 = math.fabs((a1 - 4*a2) / 3) # Richardson Extrapolation
     print(f"Iteration {i}:")
     print(f"Final Area: {a1}")
-    print(f"Final Error: {error}, {error < P_ERROR}")
-    print(f"Real Error: {real_value - a1}, {math.fabs(real_value - a1) < P_ERROR}")
+    print(f"Final Error: {error}, {error < TOL}")
+    print(f"Real Error: {real_value - a1}, {math.fabs(real_value - a1) < 0.5 * math.pow(10, -4)}")
     print(f"Final Nodes: {n}")
 
     # print(midpoint_method(f, a, b, n))
