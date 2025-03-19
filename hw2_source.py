@@ -13,13 +13,14 @@ import matplotlib.pyplot as plt
 
 
 TOL = math.pow(10, -4)
-P_ERROR = (1/2) * (1/6) * 0.5 * TOL
+P_ERROR = (1/2) * (1/6) * 0.5 * (TOL + 2.51 * math.pow(10, -8))
 BOUND_CORRECTION = math.pow(10, -7)
 ITER_MAX = 10000
-ADD_ERROR = 0
+BOUND_ERROR = []
+VERBOSE = False
 
 
-def secant_method(f, x1: float, x2: float, verbose = False) -> float:
+def secant_method(f, x1: float, x2: float) -> float:
     """
     The Secant method for root approximation using two initial guesses 
     which returns a 4-decimal place accurate result and outputs the \
@@ -29,7 +30,6 @@ def secant_method(f, x1: float, x2: float, verbose = False) -> float:
         f (float -> float): function
         x1 (float): first initial guess for a root
         x2 (float): second initial guess for a root
-        verbose (boolean): if True, prints values for each iteration
 
     Returns:
         float: A value that approximates the root with 4 decimal place accuracy
@@ -39,9 +39,10 @@ def secant_method(f, x1: float, x2: float, verbose = False) -> float:
         print("ERROR: x1 cannot equal x2")
         return
 
+    global VERBOSE
     i = 0
     while True:
-        if (verbose): print(f"    Iteration {i}: x = {x2}")
+        if (VERBOSE): print(f"    Iteration {i}: x = {x2}")
 
         fx2 = f(x2)     # Calculate f(x2) once to save FP
         denom = (fx2 - f(x1)) / (x2 - x1)
@@ -50,7 +51,7 @@ def secant_method(f, x1: float, x2: float, verbose = False) -> float:
         x2 = x3
         i += 1
         error = math.fabs(x2.real - x1.real)
-        if error < TOL: break
+        if error < math.pow(10, -4): break
         elif (i >= ITER_MAX):
             print("ERROR: Reached maximum iterations. Converging too slow or not at all")
             print(f"Result: {x2} \n Error: {error}\n")
@@ -114,6 +115,7 @@ def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero 
     interval = math.fabs(b - a) / (n-1)
     nodes = create_nodes(a, b, n)
     midpoints = np.array([])
+    global VERBOSE
     for i in range(0, len(nodes) - 1):
         midpoint = (nodes[i] + nodes[i + 1]) / 2
         midpoints = np.append(midpoints, midpoint)
@@ -128,14 +130,14 @@ def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero 
         midpoint = midpoints[i]
         if (zero and midpoint == 0): continue
         midpoint = midpoint.astype(complex)
-        # print(f"INPUT: {m}")
+        if (VERBOSE): print(f"    INPUT: {midpoint}")
         value = f(midpoint)
         if (np.imag(value) > 0): 
-            # print(f"IMGAINARY ({i}): ({midpoint}, {value}")
+            if (VERBOSE): print(f"     IMGAINARY ({i}): ({midpoint}, {value}")
             f = piecewise.pop()
             value = f(midpoint)
         sum += f(midpoint)
-        # print(f"OUTPUT: {value}, complex: {np.imag(value)}")
+        if (VERBOSE): print(f"    OUTPUT: {value}, complex: {np.imag(value)}")
     return np.real(interval * sum)
 
 
@@ -165,6 +167,7 @@ def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero
         piecewise.reverse()
     interval = math.fabs(b - a) / (n-1)
     nodes = create_nodes(a, b, n)
+    global VERBOSE
 
     # print(f"nodes ({len(nodes)}): {nodes}")
     # print(f"distance: {interval}")
@@ -173,23 +176,23 @@ def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero
         node = nodes[i]
         if (zero and node == 0): continue
         node = node.astype(complex)
-        # print(f"INPUT: {node}")
+        if (VERBOSE): print(f"    INPUT: {node}")
         value = f(node)
         if np.imag(value) > 0:
-            print(f"IMGAINARY ({i}): ({node}, {value}")
+            if (VERBOSE): print(f"     IMGAINARY ({i}): ({node}, {value}")
             f = piecewise.pop()
             value = f(node)
         
         if (i == 0 or i == len(nodes)): sum += f(node)
         else: sum += 2*f(node)
-        # print(f"OUTPUT: {value}, complex: {np.imag(value)}")
+        if (VERBOSE): print(f"    OUTPUT: {value}, complex: {np.imag(value)}")
 
     sum = (interval / 2) * sum
     return np.real(sum)
     
 
 def find_area(method, f, a: float, b: float, n: int, 
-              verbose = False, piecewise: list = None, zero=False) -> float:
+              piecewise: list = None, zero=False) -> float:
     """
     Calculates the area under the curve 'f' in a given range [a,b] using the 
     Midpoint Method. It first started with the given nodes n, but increases
@@ -201,7 +204,6 @@ def find_area(method, f, a: float, b: float, n: int,
         a (float): start of range
         b (float): end of range
         n (int): number of nodes to approximate integration with
-        verbose (bool): option to print additional information
         piecewise (list[float -> float]): optional list of continuous functions
           for integration in case of a piecewise function
 
@@ -213,6 +215,7 @@ def find_area(method, f, a: float, b: float, n: int,
     a2 = None
     i = 0
     error = None
+    global VERBOSE
 
     while True:
         n = 2 * n
@@ -221,7 +224,7 @@ def find_area(method, f, a: float, b: float, n: int,
         i += 1
         if (error < P_ERROR): break
         a1 = a2
-        if (verbose):
+        if (VERBOSE):
             print(f"Iternation {i}:\n  First Area: {a1}\n  Second Area: {a2}\n  Nodes: {int(n/2)} vs {n}\n  Error: {error}")
 
     a1 = math.fabs((a1 - 4*a2) / 3) # Richardson Extrapolation
@@ -276,6 +279,7 @@ def test_suite():
 
 
 def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
+    print("\nMIDPOINT METHOD...")
     x, y = sp.symbols('x y')
     k1 = sp.lambdify(x, kidney_solutions[0], modules='numpy') 
     k2 = sp.lambdify(x, kidney_solutions[1], modules='numpy')  
@@ -295,7 +299,7 @@ def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
     print("\nFINDING MINIMUM X VALUE:")
     kidney_LR_derivative = sp.diff(kidney_solutions[0], x)
     dk1 = sp.lambdify(x, kidney_LR_derivative, modules='numpy')
-    sol_x = secant_method(dk1, 0.62, 0.625, True)
+    sol_x = secant_method(dk1, 0.62, 0.625)
     min_y = k1(sol_x)
     min_x = np.real(min_y)
     print(f"EVALUATE dk1(min_x): {dk1(sol_x)}")
@@ -313,10 +317,10 @@ def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
     if (all_sections or sections[0]):
         max_x = 0.25 - math.sqrt(0.125)
 
-        print("\nAREA OF SECTION 1.1 TOP:")
-        whole_area = find_area(midpoint_method, k4, min_x, max_x, 2, verbose=True)
-        print("\nAREA OF SECTION 1.2 BOTTOM:")
-        subtract_area = find_area(midpoint_method, k3, min_x, max_x, 2, verbose=True)
+        print("\nAREA OF SECTION 1.1 TOP KIDNEY CURVE:")
+        whole_area = find_area(midpoint_method, k4, min_x, max_x, 20)
+        print("\nAREA OF SECTION 1.2 BOTTOM KIDNEY CURVE:")
+        subtract_area = find_area(midpoint_method, k3, min_x, max_x, 20)
         section_1_area = whole_area - subtract_area
 
     ## SOME RESULTS
@@ -334,10 +338,10 @@ def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
         x1 = 0.25 - math.sqrt(0.125)
         x2 = 0.5
 
-        print("\nAREA OF SECTION 2.1 TOP:")
-        whole_area = find_area(midpoint_method, k4, x1, x2, 20, verbose=True, piecewise=[k2])
-        print("\nAREA OF SECTION 2.2 BOTTOM:")
-        subtract_area = find_area(midpoint_method, c2, x1, x2, 20, verbose=True)
+        print("\nAREA OF SECTION 2.1 TOP KIDNEY CURVE:")
+        whole_area = find_area(midpoint_method, k4, x1, x2, 20, piecewise=[k2])
+        print("\nAREA OF SECTION 2.2 UPPER CIRCLE CURVE:")
+        subtract_area = find_area(midpoint_method, c2, x1, x2, 20)
         section_2_area = whole_area - subtract_area
 
     ## SOME RESULTS:
@@ -352,17 +356,17 @@ def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
         x1 = 0.25 - math.sqrt(0.125)
         x2 = 0
 
-        print("\nAREA OF SECTION 3.1 LOWER CIRCLE:")
-        whole_area = find_area(midpoint_method, c1, x1, x2, 20, verbose=True)        
-        print("\nAREA OF SECTION 3.2 BOTTOM KIDNEY:")
-        subtract_area = find_area(midpoint_method, k3, x1, x2, 20, verbose=True)
+        print("\nAREA OF SECTION 3.1 LOWER CIRCLE CURVE:")
+        whole_area = find_area(midpoint_method, c1, x1, x2, 20)        
+        print("\nAREA OF SECTION 3.2 BOTTOM KIDNEY CURVE:")
+        subtract_area = find_area(midpoint_method, k3, x1, x2, 20)
         section_3_area = whole_area - subtract_area
 
     # SOME RESULTS:
     # 20 -> 0.002130206649589882
         
 
-    print("\n")
+    print("")
     if all_sections or sections[0]: print(F"SECTION 1 RESULT: {section_1_area}")
     if all_sections or sections[1]: print(F"SECTION 2 RESULT: {section_2_area}")
     if all_sections or sections[2]: print(F"SECTION 3 RESULT: {section_3_area}")
@@ -373,6 +377,7 @@ def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
         return total_area
 
 def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
+    print("\nTRAPEZOID METHOD...")
     x, y = sp.symbols('x y')
     k1 = sp.lambdify(x, kidney_solutions[0], modules='numpy') 
     k2 = sp.lambdify(x, kidney_solutions[1], modules='numpy')  
@@ -382,6 +387,8 @@ def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
     c2 = sp.lambdify(x, circle_solutions[1], modules='numpy')  
     all_sections = not (True in sections)
     section_1_area = section_2_area = section_3_area = 0
+    section_2_error = section_3_error = 0
+    global BOUND_CORRECTION, BOUND_ERROR
 
     # FINDING THE MINUMUM X
     # 1. We take the derivative of k1 (kidney_lower_right)
@@ -392,7 +399,7 @@ def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
     print("\nFINDING MINIMUM X VALUE:")
     kidney_LR_derivative = sp.diff(kidney_solutions[0], x)
     dk1 = sp.lambdify(x, kidney_LR_derivative, modules='numpy')
-    sol_x = secant_method(dk1, 0.62, 0.625, True)
+    sol_x = secant_method(dk1, 0.62, 0.625)
     min_y = k1(sol_x)
     min_x = np.real(min_y)
     print(f"EVALUATE dk1(min_x): {dk1(sol_x)}")
@@ -413,9 +420,9 @@ def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
         # BOUND_CORRECTION = math.pow(10, -7)
         
         print("\nAREA OF SECTION 1.1 TOP KIDNEY CURVE:")
-        whole_area = find_area(trapezoid_method, k4, min_x, max_x, 2, verbose=True)
+        whole_area = find_area(trapezoid_method, k4, min_x, max_x, 20)
         print("\nAREA OF SECTION 1.2 BOTTOM KIDNEY CURVE:")
-        subtract_area = find_area(trapezoid_method, k3, min_x, max_x, 2, verbose=True)
+        subtract_area = find_area(trapezoid_method, k3, min_x, max_x, 20)
         section_1_area = whole_area - subtract_area
 
     ## SOME RESULTS
@@ -428,15 +435,18 @@ def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
 #   SECTION 2:  (0.25 - sqrt(0.125)) < x < 0.5 AND y > 0.25
 #       2.1 -   ADD area under k4 (kidney_top_left) and k2 (kidney_top_right)
 #       2.2 -   SUBTRACT area under c1 (circle_upper)
-#   - Bound correction needed for the circle curve
+#   - Bound correction needed for the upper circle curve
+#       Therefore, the value will be a greater by a maximum of the calculated error 
     if (all_sections or sections[1]):
         x1 = 0.25 - math.sqrt(0.125)
         x2 = 0.5
         print("\nAREA OF SECTION 2.1 TOP KIDNEY CURVE:")
-        whole_area = find_area(trapezoid_method, k4, x1, x2, 1000, verbose=True, piecewise=[k2])
+        whole_area = find_area(trapezoid_method, k4, x1, x2, 20, piecewise=[k2])
         print("\nAREA OF SECTION 2.2 UPPER CIRCLE CURVE:")
-        subtract_area = find_area(trapezoid_method, c2, x1 + BOUND_CORRECTION, x2, 2, verbose=True)
+        subtract_area = find_area(trapezoid_method, c2, x1 + BOUND_CORRECTION, x2, 20)
         section_2_area = whole_area - subtract_area
+        section_2_error = c2(x1 + BOUND_CORRECTION) * BOUND_CORRECTION
+        BOUND_ERROR.append(section_2_error)
 
     ## SOME RESULTS:
     # 2 -> 0.48724335298516297
@@ -448,18 +458,21 @@ def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
 #   SECTION 3:  (0.25 - sqrt(0.125)) < x < 0 AND y < 0.25
 #       3.1 -   ADD area under c1 (circle_lower)
 #       3.2 -   SUBTRACT area under k3 (kidney_bottom_left) 
-#   - Bound correction needed for the circle curve
+#   - Bound correction needed for the lower circle curve, 
+#       Thereofore value will be short by a max of the calculated error
 #   - Due to function definition, x = 0 will cause an indeterminate form
 #       but the value will be 0 using either equation
     if (all_sections or sections[2]):  
-        # BOUND_CORRECTION = math.pow(10, -7)
         x1 = 0.25 - math.sqrt(0.125)
         x2 = 0
         print("\nAREA OF SECTION 3.1 LOWER CIRCLE CURVE:")
-        whole_area = find_area(trapezoid_method, c1, x1 + BOUND_CORRECTION, x2, 2, verbose=True, zero=True)
+        whole_area = find_area(trapezoid_method, c1, x1 + BOUND_CORRECTION, x2, 20, zero=True)
         print("\nAREA OF SECTION 3.2 BOTTOM KIDNEY CURVE:")
-        subtract_area = find_area(trapezoid_method, k3, x1, x2, 2, verbose=True, zero=True)
+        subtract_area = find_area(trapezoid_method, k3, x1, x2, 20, zero=True)
         section_3_area = whole_area - subtract_area
+        section_3_error = c1(x1 + BOUND_CORRECTION) * BOUND_CORRECTION
+        BOUND_ERROR.append(section_3_error)
+       
 
     # SOME RESULTS:
     # 2 -> 0.037814791438147415
@@ -467,10 +480,14 @@ def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
     # 5 -> 0.03781339320013076
     # 1000 -> 0.03780748860295236
 
-    print("\n")
+    print("")
     if all_sections or sections[0]: print(F"SECTION 1 RESULT: {section_1_area}")
-    if all_sections or sections[1]: print(F"SECTION 2 RESULT: {section_2_area}")
-    if all_sections or sections[2]: print(F"SECTION 3 RESULT: {section_3_area}")
+    if all_sections or sections[1]: 
+        print(f"SECTION 2 RESULT: {section_2_area}")
+        print(f"SECTION 2 BOUND ERROR: {section_2_error}")
+    if all_sections or sections[2]: 
+        print(f"SECTION 3 RESULT: {section_3_area}")
+        print(f"SECTION 3 BOUND ERROR: {section_3_error}")
 
     if (all_sections):
         total_area = 2 * (section_1_area + section_2_area + section_3_area) 
@@ -526,8 +543,8 @@ def show_graphs(kidney_solutions, circle_solutions, sections):
 
 
 def main():
+    global VERBOSE, BOUND_ERROR
     graphs = False
-    verbose = False
     perform = True
     evalute = [False, False, False]
     sections = [False, False, False]
@@ -547,7 +564,7 @@ def main():
                 \n   |  |   -s\t To specify specific sections of the method to run ('13' or '2')" 
         
         if '-g' in sys.argv or '--graph' in sys.argv: graphs = True
-        if '-v' in sys.argv or '--verbose' in sys.argv: verbose = True
+        if '-v' in sys.argv or '--verbose' in sys.argv: VERBOSE = True
         
         if flag == '-h' or flag == "--help": 
             print(help_menu)
@@ -582,7 +599,7 @@ def main():
     kidney = sp.Eq((x**2 + y**2)**2, x**3 + y**3)
     kidney_solutions = sp.solve(kidney, y)
     print(f"Kidney solution number: {len(kidney_solutions)}")
-    if verbose:
+    if VERBOSE:
         for solution in kidney_solutions:
             print("\n")
             print(solution)
@@ -591,7 +608,7 @@ def main():
     circle = sp.Eq((x-0.25)**2 + (y-0.25)**2 , 0.125)
     circle_solutions = sp.solve(circle, y)
     print(f"Cirlce solution number: {len(circle_solutions)}") 
-    if verbose:
+    if VERBOSE:
         for solution in circle_solutions:
             print("\n")
             print(solution)
@@ -605,10 +622,17 @@ def main():
 
     print("\n")
     if ((perform or evalute[0]) and not (True in sections)):
-        print(f"Midpoint Area: {midpoint_area}")
+        print(f"Total Midpoint Area: {midpoint_area}")
 
     if ((perform or evalute[1]) and not (True in sections)):
-        print(f"Trapezoid Area: {trapezoid_area}")
+        print(f"Total Trapezoid Area: {trapezoid_area}")
+        print(f"  Additional Error from Bound Correction: [+{BOUND_ERROR[1]}, -{BOUND_ERROR[0]}]")
+
+        # Since both errors subtract from each other and the greater error among the two 
+        # is having a calculate area > 2.50...e-8 from the real value...
+        # We will consider this as the maximum error that can occur from bound reduction
+        print(f"  [{trapezoid_area + BOUND_ERROR[1]}, {trapezoid_area - BOUND_ERROR[0]}]")
+
     print("\n")
 
     if graphs:
