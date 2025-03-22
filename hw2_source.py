@@ -475,14 +475,14 @@ def show_graphs(kidney_solutions, circle_solutions, sections):
                 plt.plot(X_SPACE, YK_top_left, label="Top Curve K_T(x)", color="y")
 
             # Circle Equation
-        #     if (all_sections or sections[2] or sections[0]):
-        #         YC_upper = c1(X_SPACE)
-        #         plt.plot(X_SPACE, YC_upper, label='Upper Circle', color='b')
-        #     if (all_sections or sections[1] or sections[0]):
-        #         YC_lower = c2(X_SPACE)
-        #         plt.plot(X_SPACE, YC_lower, label='Lower Circle', color='c')
+            if (all_sections or sections[2] or sections[0]):
+                YC_upper = c1(X_SPACE)
+                plt.plot(X_SPACE, YC_upper, label='Upper Circle C_U(x)', color='grey')
+            if (all_sections or sections[1] or sections[0]):
+                YC_lower = c2(X_SPACE)
+                plt.plot(X_SPACE, YC_lower, label='Lower Circle C_L(x)', color='grey')
 
-        # plt.plot(X_SPACE, X_SPACE, label='x=y', color='black', linewidth=0.5)
+        plt.plot(X_SPACE, X_SPACE, label='x=y', color='black', linewidth=0.5)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.axvline(0, color='black', linewidth=0.5)
         plt.legend()
