@@ -6,7 +6,7 @@
 # Source Code found at:
 # https://github.com/joeyboi145/ams326_scripts/blob/main/hw2_source.py
 
-import math, sys, warnings, random
+import math, sys, warnings, random, time
 import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -249,6 +249,9 @@ def test_suite():
 
 
 def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
+    '''
+    Performs area approximation for the kidney equation using the Midpoint method
+    '''
     print("\nMIDPOINT METHOD...")
     x, y = sp.symbols('x y')
     k1 = sp.lambdify(x, kidney_solutions[0], modules='numpy') 
@@ -337,6 +340,9 @@ def kidney_midpoint_integration(kidney_solutions, circle_solutions, sections):
         return half_area
 
 def kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections):
+    '''
+    Performs area approximation for the kidney equation using the Trapezoid method
+    '''
     print("\nTRAPEZOID METHOD...")
     x, y = sp.symbols('x y')
     k1 = sp.lambdify(x, kidney_solutions[0], modules='numpy') 
@@ -454,29 +460,29 @@ def show_graphs(kidney_solutions, circle_solutions, sections):
 
             if (all_sections):
                 YK_lower_right = k1(X_SPACE)    
-                plt.plot(X_SPACE, YK_lower_right, label="Kidney", color="r")
+                plt.plot(X_SPACE, YK_lower_right, label="Bottom Curver K_B(x)", color="r")
 
             if (all_sections or sections[1]):
                 YK_top_right = k2(X_SPACE)
-                plt.plot(X_SPACE, YK_top_right,color="r")
+                plt.plot(X_SPACE, YK_top_right, label="Right Curve K_R(x)", color="g")
 
             if (all_sections or sections[0] or sections[2]):
                 YK_lower_left = k3(X_SPACE)
-                plt.plot(X_SPACE, YK_lower_left, color="r")
+                plt.plot(X_SPACE, YK_lower_left, label="Left Curve K_L(x)", color="c")
 
             if (all_sections or sections[1] or sections[0]):
                 YK_top_left = k4(X_SPACE)
-                plt.plot(X_SPACE, YK_top_left,color="r")
+                plt.plot(X_SPACE, YK_top_left, label="Top Curve K_T(x)", color="y")
 
             # Circle Equation
-            if (all_sections or sections[2] or sections[0]):
-                YC_upper = c1(X_SPACE)
-                plt.plot(X_SPACE, YC_upper, label='Upper Circle', color='b')
-            if (all_sections or sections[1] or sections[0]):
-                YC_lower = c2(X_SPACE)
-                plt.plot(X_SPACE, YC_lower, label='Lower Circle', color='c')
+        #     if (all_sections or sections[2] or sections[0]):
+        #         YC_upper = c1(X_SPACE)
+        #         plt.plot(X_SPACE, YC_upper, label='Upper Circle', color='b')
+        #     if (all_sections or sections[1] or sections[0]):
+        #         YC_lower = c2(X_SPACE)
+        #         plt.plot(X_SPACE, YC_lower, label='Lower Circle', color='c')
 
-        plt.plot(X_SPACE, X_SPACE, label='x=y', color='black', linewidth=0.5)
+        # plt.plot(X_SPACE, X_SPACE, label='x=y', color='black', linewidth=0.5)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.axvline(0, color='black', linewidth=0.5)
         plt.legend()
@@ -484,7 +490,19 @@ def show_graphs(kidney_solutions, circle_solutions, sections):
         plt.ylabel("y")
         plt.show()
 
-def generate_uniform_matrix(n, a, b):
+def generate_uniform_matrix(n: int, a: float, b: float) -> np.ndarray:
+    '''
+    Generates an N x N matrix of random values sampled from a uniform ditribution
+    of the range [a,b]
+
+    Args:
+        n (int): The length of rows and columns for the matrix
+        a (float): The beginning of the range
+        b (float): The end of the range
+
+    Returns
+        (numpy.ndarray): Generated matrix
+    '''
     if (a >= b): raise ValueError("b must be greater than a")
 
     matrix = []
@@ -495,29 +513,67 @@ def generate_uniform_matrix(n, a, b):
             matrix[i].append(uniform_val)
     return np.array(matrix)
 
-def print_matrix(m, f = sys.stdout):
-    f.write("[")
+def print_matrix(m: np.ndarray, f = sys.stdout):
+    '''
+    Prints out a given array into a more readable format to a given file output
+
+    Args:
+        m (numpy.ndarray): Matrix to print
+        f (file): File object to write to. Normally sys.stdout
+    '''
+    f.write("[\n")
     for row in m:
         row_str = "\t["
         for x in row:
             row_str += str(x) + ", "
         row_str = row_str[:-2]
-        f.write(row_str + "],")
-    f.write("]")
+        f.write(row_str + "],\n")
+    f.write("]\n")
 
 def solve_uniform_matrix_equation(n, f = sys.stdout):
+    '''
+    Generates an N x N matrix A of random values sampled from a uniform ditribution
+    in the range [a,b], and then returns the solution to the matrix equation Ax = b, 
+    where is a 1 x N vector of 1s.
+
+    Args:
+        m (numpy.ndarray): Matrix to print
+        f (file): File object to write to. Normally sys.stdout
+
+    Returns:
+        (numpy.ndarray): A 1 x N vector that is the solution to the equation.
+    '''
     A = generate_uniform_matrix(n, -1, 1)
     b = np.full(n, 1)
-    f.write("Matrix:")
-    print(A)
-    print_matrix(A, f)
-    f.write(f"\nLHS Values: {b}")
-    solution = np.linalg.solve(A,b)
-    f.write(f"\nSolution: {solution}")
 
-    f.write("\nTESTING Ax = b:")
-    f.write(str(A @ solution))
+    print(f"Matrix:\n{A}\n")
+    f.write("Matrix:\n")
+    print_matrix(A, f)
+    
+    f.write(f"\nLHS Values: \n{b}\n")
+
+    solution = np.linalg.solve(A,b)
+    print(f"Solution:\n{solution}\n")
+    f.write(f"\nSolution: \n{solution}\n")
+
+    result = A @ solution
+    print(f"\nTESTING Ax = b:\n{result}")
+    f.write(f"\nTESTING Ax = b:\n{result}\n")
+
     return solution
+
+def calc_runtime(start_time: float) -> None:
+    """
+    Prints the runtime in milliseconds of a segment of code given the start time.
+
+    Args:
+        start_time (float): A time value
+
+    """
+    end_time = time.perf_counter()
+    runtime = (end_time - start_time) * 10 ** 3
+    print(f"Runtime: {runtime} ms")
+    return runtime
 
 
 def main():
@@ -597,19 +653,24 @@ def main():
                 print(solution)
                 
 
+    start_time_M = start_time_T = 0
     if (perform or evalute[0]):
+        start_time_M = time.perf_counter()
         midpoint_area = kidney_midpoint_integration(kidney_solutions, circle_solutions, sections)
 
+
     if (perform or evalute[1]):
+        start_time_T = time.perf_counter()
         trapezoid_area = kidney_trapezoid_integration(kidney_solutions, circle_solutions, sections)
 
     print("")
     if ((perform or evalute[0]) and not (True in sections)):
         print(f"Half Midpoint Area: {midpoint_area}")
         print(f"Total Midpoint Area: {2 * midpoint_area}")
+        calc_runtime(start_time_M)
 
     if ((perform or evalute[1]) and not (True in sections)):
-        print(f"Half Trapezoid Area: {trapezoid_area}")
+        print(f"\nHalf Trapezoid Area: {trapezoid_area}")
         print(f"Total Trapezoid Area: {2 * trapezoid_area}")
         print(f"  Additional Error from Bound Correction: [+{BOUND_ERROR[1]}, -{BOUND_ERROR[0]}]")
 
@@ -617,11 +678,15 @@ def main():
         # is having a calculate area > 2.50...e-8 from the real value...
         # We will consider this as the maximum error that can occur from bound reduction
         print(f"  [{2 * trapezoid_area + BOUND_ERROR[1]}, {2 * trapezoid_area - BOUND_ERROR[0]}]")
+        calc_runtime(start_time_T)
         print("\n")
 
     if (perform or evalute[2]):
         f = open("matrix_result.txt", "w")
+        start_time_A = time.perf_counter()
         solve_uniform_matrix_equation(66, f)
+        runtime = calc_runtime(start_time_A)
+        f.write(f"\nRuntime: {runtime} ms")
         f.close()
 
     if graphs:
