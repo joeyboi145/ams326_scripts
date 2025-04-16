@@ -66,7 +66,7 @@ def secant_method(f, x1: float, x2: float) -> float:
 
 def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero = False) -> float:
     """
-     The Midpoint Method of integration for a given function f
+    The Midpoint Method of area approximation for a given function f
     over a given range [a,b] using n node. If the function is a piecewise 
     function over the given interval, provide ordered list of piecewise functions
     orderd by increasing x domain.
@@ -85,13 +85,12 @@ def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero 
     if (n <= 1): raise ValueError("n must be two nodes or greater")
     if (b <= a): raise ValueError("b must be greater than a")
 
+    global VERBOSE
     if (piecewise): 
         piecewise = piecewise.copy()
-        piecewise.reverse()
     interval = math.fabs(b - a) / (n-1)
     nodes = np.linspace(a, b, n)
     midpoints = np.array([])
-    global VERBOSE
     for i in range(0, len(nodes) - 1):
         midpoint = (nodes[i] + nodes[i + 1]) / 2
         midpoints = np.append(midpoints, midpoint)
@@ -110,7 +109,7 @@ def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero 
         value = f(midpoint)
         if (np.imag(value) > 0): 
             if (VERBOSE): print(f"     IMGAINARY ({i}): ({midpoint}, {value}")
-            f = piecewise.pop()
+            f = piecewise.pop(0)
             value = f(midpoint)
         sum += f(midpoint)
         if (VERBOSE): print(f"    OUTPUT: {value}, complex: {np.imag(value)}")
@@ -119,7 +118,7 @@ def midpoint_method(f, a: float, b: float, n: int, piecewise: list = None, zero 
 
 def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero = False) -> float:
     """
-    The Trazpezoid Method of integration for a given function f
+    The Trazpezoid Method of area approximation for a given function f
     over a given range [a,b] using n node. If the function is a piecewise 
     function over the given interval, provide ordered list of piecewise functions
     orderd by increasing x domain.
@@ -140,7 +139,6 @@ def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero
 
     if (piecewise): 
         piecewise = piecewise.copy()
-        piecewise.reverse()
     interval = math.fabs(b - a) / (n-1)
     nodes = np.linspace(a, b, n)
     global VERBOSE
@@ -156,7 +154,7 @@ def trapezoid_method(f, a: float, b: float, n: int, piecewise: list = None, zero
         value = f(node)
         if np.imag(value) > 0:
             if (VERBOSE): print(f"     IMGAINARY ({i}): ({node}, {value}")
-            f = piecewise.pop()
+            f = piecewise.pop(0)
             value = f(node)
         
         if (i == 0 or i == len(nodes)-1): sum += f(node)
