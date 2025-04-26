@@ -9,20 +9,18 @@ import numpy as np
 from shapely.geometry import MultiPolygon, Polygon
 from shapely.affinity import rotate, translate
 from scipy.optimize import minimize
-from scipy.optimize import differential_evolution
 
 W = 1   # distance between lines
 NUM_NEEDLES = 1000 # number of lines on the board
 NUM_DISKS = 4444444 # number of disks
 VERBOSE = False
 GRAPHS = False
+k = 44 / 88
 
 
-def buffon_needles(disks: int, disk_d: float, needles: int, line_width: float) -> list[int]:
+def buffon_disk(disks: int, disk_d: float, needles: int, line_width: float) -> list[int]:
     '''
-    This function will report a list of integers that indicate the number of randomly throwing disks on a 
-    plane of lines, seperated by some distance w, that touch i lines, where i is the index of the array.
-    Therefore, the first index of this array is the number of disks that touch 0 lines, then 1 lines, etc...
+    This function will report a list of integers that indicate the number of randomly throwing disks on a plane of lines, seperated by some distance w, that touch i lines, where i is the index of the array. Therefore, the first index of this array is the number of disks that touch 0 lines, then 1 lines, etc...
 
     Parameters:
     disks (int): The number of disks to simulation.
@@ -33,7 +31,7 @@ def buffon_needles(disks: int, disk_d: float, needles: int, line_width: float) -
     Returns:
     list: The number of disks that touch i lines, where i is the index of the array.
     '''
-    print("\nBuffon's Needles:")
+    print("Buffon's Needles:")
     print(f"   Disk Diameter: {disk_d}")
     if VERBOSE:
         print(f"   Disks: {disks}")
@@ -43,8 +41,7 @@ def buffon_needles(disks: int, disk_d: float, needles: int, line_width: float) -
 
     # Calculate maximum number of lines 
     disk_r = disk_d / 2
-    min_lines = (int)((disk_d) / line_width)
-    max_lines = min_lines + 1
+    max_lines = (int)((disk_d) / line_width) + 1
     # Create array to bin disks into by the number of lines they touch
     disksTouchLines = [0] * 5 #(max_lines + 1)
     last_line = (needles - 1) * line_width
@@ -84,18 +81,37 @@ def buffon_needles(disks: int, disk_d: float, needles: int, line_width: float) -
     return disksTouchLines
 
 def getLinePercents(lines, map):
+    '''
+    Returns a list of probabilities that indicate the probability  of disks of varying diameter to land on a specified number of line, which is given by 'lines'
+    
+    This function requires a mapping of disk diameter (key) to a list of probabilities (value) for a disk of that specific key diameter landing on i lines, where i is the ith index of the list.
+
+    Parameters:
+    lines (int): number of lines to base probabilities on. If for example 0, the returned list will be the probabilites of varying disk diameters landing on 0 lines
+    map (Map): Mapping to disk diameter to probabilities of landing on lines
+
+    Returns:
+    list: probabilities of varying disk size landing on 'lines' number of lines
+    '''
     percents = []
     for key in map:
         percents.append(map[key][lines])
     return percents
 
-def simulation_buffon_needles():
+def simulation_buffon_disk():
+    '''
+    Simulates the Buffon Needles problem with 13 different diameter disks and outputs PDF graphs for the chances of landing on l lines based on the disk diameter.
+    '''
     d_values = [1/10, 2/10, 3/10, 4/10, 5/10, 6/10, 7/10, 8/10, 9/10, 10/10, 15/10, 20/10, 30/10]
     reults_map = {}
+    count = 1
+    print("SIMULATING MULTIPLE BUFFON NEEDLES PROBLEM")
     for d in d_values:
-        results = buffon_needles(NUM_DISKS, d, NUM_NEEDLES, W)
+        print(f"\nSimulation {count}:", end='\n')
+        results = buffon_disk(NUM_DISKS, d, NUM_NEEDLES, W)
         percents = list(map(lambda x: x/NUM_DISKS, results))
         reults_map[d] = percents
+        count += 1
         if VERBOSE:
             print(results)
             print(percents)
@@ -105,13 +121,12 @@ def simulation_buffon_needles():
         print(f"  {key}: {reults_map[key]}")
     print("}")
 
-    if GRAPHS:
-        for l in range(0, 5):
-            plt.plot(d_values, getLinePercents(l, reults_map))
-            plt.title(f"The probability of a Disk Landing on {l} Line{'s' if (l != 1) else ''}\nvs. the Diameter of the disk")
-            plt.ylabel('Probability')
-            plt.xlabel('Disk Diameter')
-            plt.show()
+    for l in range(0, 5):
+        plt.plot(d_values, getLinePercents(l, reults_map))
+        plt.title(f"The probability of a Disk Landing on {l} Line{'s' if (l != 1) else ''}\nvs. the Diameter of the disk")
+        plt.ylabel('Probability')
+        plt.xlabel('Disk Diameter')
+        plt.show()
 
 
 
@@ -140,6 +155,19 @@ def rose_curve(k: float = 2, a: float = 1, num_points: int = 1000) -> Polygon:
 
 
 def create_cutter(width=1, height=(1/np.sqrt(2)), angle=0, x0=0, y0=0):
+    '''
+    Creates a Rectangle of size 1 and 1/sqrt(2) by default to cut the area out of our Rose Curve
+
+    Parameters:
+    width (float): width of the rectangle, 1 by default.
+    heigh (float): height of the rectangle, 1/sqrt(2) by default
+    angle (float): angle to place rectangle at, 0 by default
+    x0 (float): Initial x position of the rectangle: 0 by default
+    y0 (float): Initial y position of the rectangle: 0 by default
+
+    Returns:
+    Polygon: The 1 by 1/sqrt(2) rectangle as a Polygon
+    '''
     rect = Polygon([(-width/2, -height/2), (width/2, -height/2),
                     (width/2, height/2), (-width/2, height/2)])
     rect = rotate(rect, angle, origin=(0, 0), use_radians=True)
@@ -148,6 +176,16 @@ def create_cutter(width=1, height=(1/np.sqrt(2)), angle=0, x0=0, y0=0):
 
 
 def negative_intersection_area(params, rose):
+    '''
+    Returns the negative area of rose curve using specified parameters to place out 1 by 1/sqrt(2) cutter.
+
+    Parameters:
+    params (tuple): The parameters where and how to place the rectangle cutter.
+    rose (Polygon): The rose curve as a Polygon . 
+
+    Returns:
+    int: The negative area of the rose curve where the cutter was placed
+    '''
     x, y, angle = params
     cutter = create_cutter(angle=angle, x0=x, y0=y)
     intersection = rose.intersection(cutter)
@@ -172,10 +210,13 @@ def plot_shape(ax, shape, title, label, color='red'):
     ax.set_title(title)
 
 
-def simulate_rose_area():
-    print("\nSimulating Optimal Rose Curve Area Cut:")
+def simulate_rose_area(rose):
+    '''
+    Simulates the optimal 1 by 1/sqrt(2) retangle cut out of a rose curve to maximum the area being cut. Outputs a graph showing the optimal cut.
+    '''
+    print("\nSIMULATING OPTIMAL ROSE CURVE AREA CUT:")
     # Create rose graph polygon
-    rose = rose_curve().buffer(0)
+    # rose = rose_curve().buffer(0)
 
     # Initial guess and bounds: x, y in [-0.25, 0.25], angle in [0, 2π]
     init_x = random.uniform(-0.25, 0.25)
@@ -197,26 +238,76 @@ def simulate_rose_area():
     best_x, best_y, best_angle = result.x
     best_cutter = create_cutter(angle=best_angle, x0=best_x, y0=best_y)
     max_area = -result.fun
-    print(f"Optimized Area Cut: {max_area}")
+    print(f"\n Max area: {max_area}")
     print(f"Rectangle placed a ({best_x},{best_y}) at {best_angle} radians.\n")
 
     # Plotting
-    if GRAPHS:
-        fig, ax = plt.subplots()
-        plot_shape(ax, rose, f'Optimized Area Cut = {max_area:.4f}', 'Rose Curve')
+    fig, ax = plt.subplots()
+    plot_shape(ax, rose, f'Optimized Area Cut for Rose Curve and a\nRectangle Cutter. Max Area: {max_area:.4f}', 'Rose Curve')
 
-        cutter_x, cutter_y = best_cutter.exterior.xy
-        ax.plot(cutter_x, cutter_y, color='blue', label='Best Cutter')
+    cutter_x, cutter_y = best_cutter.exterior.xy
+    ax.plot(cutter_x, cutter_y, color='blue', label='Best Cutter')
 
-        ax.set_aspect('equal')
-        plt.legend()
-        plt.show()
+    ax.set_aspect('equal')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+    plt.show()
 
-  
+
+def f(x: float, y: float):
+    '''
+    Our differential equation for the trajectory of the plane.
+
+    Returns: 
+    float: the value of the equation with a given x and y values
+    '''
+    return (y / x) - (k * math.sqrt(1 + (y / x) ** 2))
+
+def simulate_plane(start_x, start_y, h):
+    '''
+    Simulates the airplane trajectory using a Runge-Kutta Method of numerically approximate the solution to a differential equaiton. A graph with the trajectory is displayed.
+    '''
+    print("SIMULATING AIRPLANE TRAJECTORY")
+    x = start_x
+    y = start_y
+    x_trajectory = []
+    y_trajectory = []
+    while (x >= 0 and y >= 0):
+        # Runge-Kutta Method
+        k1 = f(x, y)
+        k2 = f(x + (h/2), y + ((h/2) * k1)) 
+        k3 = f(x + h, y - (h*k1) + (2*h*k2)) 
+
+        y += (h/6) * (k1 + (4*k2) + k3)
+        x += h
+
+        if (x >= 0 and y >= 0):
+            x_trajectory.append(x)
+            y_trajectory.append(y)
+            if VERBOSE: print(f"({x}, {y})")
+            else: print(f"Progress: {(int)((start_x - x))}%\r", end="")
+
+
+    print("Progress: 100%")
+
+    plt.plot(x_trajectory, y_trajectory, label='Trajectory')
+    plt.title('Airplane Trajectory using a Runge-Kutta Method')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.show()
+
+    trajectory = []
+    for i in range(0, len(x_trajectory)):
+        trajectory.append([x_trajectory[i], y_trajectory[i]])
+    return trajectory
+
+
+
 
 def main():
     global VERBOSE, GRAPHS
-    tests = [False, False]
+    tests = [False, False, False]
     ### BEGIN SWITCHBOARD ###
     if len(sys.argv) > 1:
         if '-v' in sys.argv: VERBOSE = True
@@ -231,18 +322,25 @@ def main():
                 test = sys.argv[2]
                 if test == '-b':    tests[0] = True
                 elif test == '-r':  tests[1] = True
+                elif test == '-p':  tests[2] = True
     ### END SWITCHBOARD ###
     perform = ((True not in tests) or (False not in tests))
 
     # Simulate Buffon's needles Data
     if (perform or tests[0]):
-        simulation_buffon_needles()
+        simulation_buffon_disk()
 
     # Simulate Rose Curve needles
     if (perform or tests[1]):
-        simulate_rose_area()
+        rose_poly = rose_curve().buffer(0)
+        simulate_rose_area(rose_poly)
+
+    if (perform or tests[2]):
+        start_x = 100
+        start_y = 0
+        h = -1*math.pow(10, -4)
+        simulate_plane(start_x, start_y, h)
 
 
 if __name__ == "__main__":
-
     main()
