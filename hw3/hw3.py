@@ -1,4 +1,4 @@
-# AMS 316: HW Set 3
+# AMS 326: HW Set 3
 # Name: Joe Martinez
 # SBUID: 11241692
 # NetID: jjmmartinez
